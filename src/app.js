@@ -1,5 +1,8 @@
-import { createElement, realToRegexRange } from "./helperFunctions.js";
+import { createElement } from "./helperFunctions.js";
+import { Chess } from "chess.js";
+import { chessBoard } from "./chessboard.js";
 
 export function Init() {
-    console.log("Hello, World!");
+    const board = new chessBoard();
+    board.build();
 }
