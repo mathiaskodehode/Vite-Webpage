@@ -1,5 +1,4 @@
 import "./extensionMethods.js";
-import toRegexRange from "to-regex-range";
 
 export function createElement(tag, options = {}, parent = null) {
     if (typeof options !== "object") throw new Error("OPTIONS MUST BE AN OBJECT");
@@ -11,8 +10,4 @@ export function createElement(tag, options = {}, parent = null) {
     }
     element.applyOptions(options);
     return element;
-}
-
-export function realToRegexRange(min, max = null) {
-    return new RegExp(`^${toRegexRange(min, max)}$`);
 }
