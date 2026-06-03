@@ -10,10 +10,16 @@ Array.prototype.random = function () {
     return this[index];
 };
 
-HTMLElement.prototype.applyOptions = function (options) {
-    if (typeof options !== "object") throw new Error("OPTIONS MUST BE AN OBJECT");
-    Object.entries(options).forEach(kvp => {
-        if (this[kvp[0]] instanceof DOMTokenList) this[kvp[0]].add(kvp[1]);
-        else this[kvp[0]] = kvp[1];
+HTMLElement.prototype.applyOptions = function (options, overrideExistingValues = false) {
+    if (options === null || typeof options !== "object" || Array.isArray(options)) throw new Error("OPTIONS MUST BE AN OBJECT");
+    Object.entries(options).forEach(([key, value]) => {
+        if (this[key] instanceof DOMTokenList) {
+            if (overrideExistingValues) this[key].value = "";
+            if (Array.isArray(value)) {
+                value.forEach(e => this[key].add(e));
+            } else {
+                this[key].add(value);
+            }
+        }
     });
 };
