@@ -20,12 +20,10 @@ export class ChessBoard {
                     "div",
                     {
                         classList: ["square", color],
+                        onclick: () => this.handleSquareClick(this.#squares[x][y]),
                     },
                     this.#root,
                 );
-                element.addEventListener("click", e => {
-                    this.handleSquareClick(this.#squares[x][y]);
-                });
                 this.#squares[x][y] = new ChessSquare(x, y, element);
             }
         }
@@ -114,7 +112,7 @@ class ChessSquare {
     }
 }
 
-export class ChessPiece {
+class ChessPiece {
     #color;
     #square;
     #element;
@@ -161,7 +159,7 @@ export class ChessPiece {
     }
 }
 
-export class ChessPawn extends ChessPiece {
+class ChessPawn extends ChessPiece {
     constructor(color, square) {
         super(color, square);
     }
@@ -171,7 +169,7 @@ export class ChessPawn extends ChessPiece {
     }
 }
 
-export class ChessKnight extends ChessPiece {
+class ChessKnight extends ChessPiece {
     constructor(color, square) {
         super(color, square);
     }
@@ -181,7 +179,7 @@ export class ChessKnight extends ChessPiece {
     }
 }
 
-export class ChessBishop extends ChessPiece {
+class ChessBishop extends ChessPiece {
     constructor(color, square) {
         super(color, square);
     }
@@ -191,7 +189,7 @@ export class ChessBishop extends ChessPiece {
     }
 }
 
-export class ChessRook extends ChessPiece {
+class ChessRook extends ChessPiece {
     constructor(color, square) {
         super(color, square);
     }
@@ -201,7 +199,7 @@ export class ChessRook extends ChessPiece {
     }
 }
 
-export class ChessQueen extends ChessPiece {
+class ChessQueen extends ChessPiece {
     constructor(color, square) {
         super(color, square);
     }
@@ -211,7 +209,7 @@ export class ChessQueen extends ChessPiece {
     }
 }
 
-export class ChessKing extends ChessPiece {
+class ChessKing extends ChessPiece {
     constructor(color, square) {
         super(color, square);
     }
