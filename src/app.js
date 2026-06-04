@@ -1,8 +1,8 @@
 import { createElement } from "./helperFunctions.js";
 import { Chess } from "chess.js";
-import { chessBoard } from "./chessboard.js";
+import { ChessBoard } from "./chessboard.js";
 
 export function Init() {
-    const board = new chessBoard();
+    const board = new ChessBoard();
     board.build();
 }
