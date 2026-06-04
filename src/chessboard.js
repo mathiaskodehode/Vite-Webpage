@@ -5,6 +5,11 @@ export class ChessBoard {
     #squares = Array.from({ length: 8 }, () => Array(8));
     #pieces = [];
     #selectedPiece = null;
+    #game = null;
+
+    constructor(game) {
+        this.#game = game;
+    }
 
     get squares() {
         return this.#squares;
@@ -13,7 +18,7 @@ export class ChessBoard {
     // add option for flipping the board (reverse)
     build() {
         this.#root = createElement("div", { classList: "board" });
-        for (let y = 0; y < 8; y++) {
+        for (let y = 7; y >= 0; y--) {
             for (let x = 0; x < 8; x++) {
                 const color = (x + y) % 2 === 0 ? "black" : "white";
                 const element = createElement(
@@ -39,32 +44,34 @@ export class ChessBoard {
 
     setupPosition() {
         for (let x = 0; x < 8; x++) {
-            this.addPiece(new ChessPawn("white", this.#squares[x][6]));
-            this.addPiece(new ChessPawn("black", this.#squares[x][1]));
+            this.addPiece(new ChessPawn("black", this.#squares[x][6]));
+            this.addPiece(new ChessPawn("white", this.#squares[x][1]));
         }
-        this.addPiece(new ChessRook("black", this.#squares[0][0]));
-        this.addPiece(new ChessRook("black", this.#squares[7][0]));
-        this.addPiece(new ChessRook("white", this.#squares[0][7]));
-        this.addPiece(new ChessRook("white", this.#squares[7][7]));
+        this.addPiece(new ChessRook("white", this.#squares[0][0]));
+        this.addPiece(new ChessRook("white", this.#squares[7][0]));
+        this.addPiece(new ChessRook("black", this.#squares[0][7]));
+        this.addPiece(new ChessRook("black", this.#squares[7][7]));
 
-        this.addPiece(new ChessKnight("black", this.#squares[1][0]));
-        this.addPiece(new ChessKnight("black", this.#squares[6][0]));
-        this.addPiece(new ChessKnight("white", this.#squares[1][7]));
-        this.addPiece(new ChessKnight("white", this.#squares[6][7]));
+        this.addPiece(new ChessKnight("white", this.#squares[1][0]));
+        this.addPiece(new ChessKnight("white", this.#squares[6][0]));
+        this.addPiece(new ChessKnight("black", this.#squares[1][7]));
+        this.addPiece(new ChessKnight("black", this.#squares[6][7]));
 
-        this.addPiece(new ChessBishop("black", this.#squares[2][0]));
-        this.addPiece(new ChessBishop("black", this.#squares[5][0]));
-        this.addPiece(new ChessBishop("white", this.#squares[2][7]));
-        this.addPiece(new ChessBishop("white", this.#squares[5][7]));
+        this.addPiece(new ChessBishop("white", this.#squares[2][0]));
+        this.addPiece(new ChessBishop("white", this.#squares[5][0]));
+        this.addPiece(new ChessBishop("black", this.#squares[2][7]));
+        this.addPiece(new ChessBishop("black", this.#squares[5][7]));
 
-        this.addPiece(new ChessQueen("black", this.#squares[3][0]));
-        this.addPiece(new ChessQueen("white", this.#squares[3][7]));
+        this.addPiece(new ChessQueen("white", this.#squares[3][0]));
+        this.addPiece(new ChessQueen("black", this.#squares[3][7]));
 
-        this.addPiece(new ChessKing("black", this.#squares[4][0]));
-        this.addPiece(new ChessKing("white", this.#squares[4][7]));
+        this.addPiece(new ChessKing("white", this.#squares[4][0]));
+        this.addPiece(new ChessKing("black", this.#squares[4][7]));
+        
     }
-
+    
     handleSquareClick(square) {
+        console.log(square.notation);
         if (this.#selectedPiece) {
             this.#selectedPiece.square.element.classList.remove("selected");
             this.#selectedPiece.move(square);
@@ -83,11 +90,15 @@ class ChessSquare {
     #x;
     #y;
     #piece = null;
-
+    
     constructor(x, y, element) {
         this.#x = x;
         this.#y = y;
         this.#element = element;
+    }
+
+    get notation() {
+        return ["a", "b", "c", "d", "e", "f", "g", "h"][this.#x] + (this.#y + 1);
     }
 
     get element() {
