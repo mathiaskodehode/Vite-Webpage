@@ -15,11 +15,8 @@ HTMLElement.prototype.applyOptions = function (options, overrideExistingValues =
     Object.entries(options).forEach(([key, value]) => {
         if (this[key] instanceof DOMTokenList) {
             if (overrideExistingValues) this[key].value = "";
-            if (Array.isArray(value)) {
-                value.forEach(e => this[key].add(e));
-            } else {
-                this[key].add(value);
-            }
-        }
+            if (Array.isArray(value)) value.forEach(e => this[key].add(e));
+            else this[key].add(value);
+        } else this[key] = value;
     });
 };
