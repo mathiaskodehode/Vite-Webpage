@@ -66,10 +66,10 @@ export class ChessBoard {
 
     handleSquareClick(square) {
         if (this.#selectedPiece) {
+            this.#selectedPiece.square.element.classList.remove("selected");
+            this.#selectedPiece.move(square);
             // TODO: make sure this is a legal move
             // TODO: handle special rules
-            this.#selectedPiece.move(square);
-            document.querySelectorAll(".selected").forEach(el => el.classList.remove("selected"));
             this.#selectedPiece = null;
         } else if (square.piece) {
             this.#selectedPiece = square.piece;
@@ -143,11 +143,17 @@ class ChessPiece {
         return this.#element;
     }
 
+    capture() {
+        this.#element.remove();
+        this.#square.piece = null;
+        this.#square = null;
+    }
+
     move(targetSquare) {
         // TODO: handle castling or w/e
         this.#square.piece = null;
         if (targetSquare.piece) {
-            targetSquare.piece.element.remove();
+            targetSquare.piece.capture();
         }
         targetSquare.element.appendChild(this.#element);
         this.#square = targetSquare;
@@ -160,60 +166,36 @@ class ChessPiece {
 }
 
 class ChessPawn extends ChessPiece {
-    constructor(color, square) {
-        super(color, square);
-    }
-
     getImagePath() {
         return `../assets/${this.color}Pawn.svg`;
     }
 }
 
 class ChessKnight extends ChessPiece {
-    constructor(color, square) {
-        super(color, square);
-    }
-
     getImagePath() {
         return `../assets/${this.color}Knight.svg`;
     }
 }
 
 class ChessBishop extends ChessPiece {
-    constructor(color, square) {
-        super(color, square);
-    }
-
     getImagePath() {
         return `../assets/${this.color}Bishop.svg`;
     }
 }
 
 class ChessRook extends ChessPiece {
-    constructor(color, square) {
-        super(color, square);
-    }
-
     getImagePath() {
         return `../assets/${this.color}Rook.svg`;
     }
 }
 
 class ChessQueen extends ChessPiece {
-    constructor(color, square) {
-        super(color, square);
-    }
-
     getImagePath() {
         return `../assets/${this.color}Queen.svg`;
     }
 }
 
 class ChessKing extends ChessPiece {
-    constructor(color, square) {
-        super(color, square);
-    }
-
     getImagePath() {
         return `../assets/${this.color}King.svg`;
     }
