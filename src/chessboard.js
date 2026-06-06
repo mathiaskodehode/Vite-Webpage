@@ -3,8 +3,9 @@ import { createElement } from "./helperFunctions";
 export class ChessBoard {
     #root = null;
     #squares = Array.from({ length: 8 }, () => Array(8));
-    #pieces = [];
-    #selectedPiece = null;
+    #selectedSquare = null;
+    #legalMoves = [];
+    #lastMove = null;
     #game = null;
 
     constructor(game) {
@@ -15,7 +16,8 @@ export class ChessBoard {
         return this.#squares;
     }
 
-    // add option for flipping the board (reverse)
+    // TODO: add option for flipping the board (reverse)
+
     build() {
         this.#root = createElement("div", { classList: "board" });
         for (let y = 7; y >= 0; y--) {
@@ -32,56 +34,126 @@ export class ChessBoard {
                 this.#squares[x][y] = new ChessSquare(x, y, element);
             }
         }
-        console.log(this.#squares);
-        this.setupPosition();
+        this.renderPosition();
         return this.#root;
     }
 
+    getSquare(notation) {
+        const x = notation.charCodeAt(0) - 97;
+        const y = Number(notation[1]) - 1;
+        return this.#squares[x][y];
+    }
+
+    clearLegalMoves() {
+        for (const move of this.#legalMoves) {
+            this.getSquare(move.to).element.classList.remove("legalMove");
+        }
+        this.#legalMoves = [];
+    }
+
+    showLegalMoves(square) {
+        this.clearLegalMoves();
+        const moves = this.#game.moves({
+            square: square.notation,
+            verbose: true,
+        });
+        this.#legalMoves = moves;
+        for (const move of moves) {
+            this.getSquare(move.to).element.classList.add("legalMove");
+        }
+    }
+
+    // TODO: call this when you press esc or something
+    clearSelection() {
+        if (this.#selectedSquare) {
+            this.#selectedSquare.element.classList.remove("selected");
+        }
+        this.clearLegalMoves();
+        this.#selectedSquare = null;
+    }
+
+    selectSquare(square) {
+        this.clearSelection();
+        this.#selectedSquare = square;
+        square.element.classList.add("selected");
+        this.showLegalMoves(square);
+    }
+
+    clearLastMoveHighlight() {
+        const highlighted = this.#root.querySelectorAll(".lastMove");
+        for (const element of highlighted) {
+            element.classList.remove("lastMove");
+        }
+    }
+
+    showLastMove(move) {
+        this.clearLastMoveHighlight();
+        this.getSquare(move.from).element.classList.add("lastMove");
+        this.getSquare(move.to).element.classList.add("lastMove");
+        this.#lastMove = move;
+    }
+
     addPiece(piece) {
-        this.#pieces.push(piece);
         piece.square.piece = piece;
     }
 
-    setupPosition() {
+    renderPosition() {
+        // TODO: only replace what's different from last turn;
+
         for (let x = 0; x < 8; x++) {
-            this.addPiece(new ChessPawn("black", this.#squares[x][6]));
-            this.addPiece(new ChessPawn("white", this.#squares[x][1]));
+            for (let y = 0; y < 8; y++) {
+                const square = this.#squares[x][y];
+                square.piece = null;
+                square.element.replaceChildren();
+            }
         }
-        this.addPiece(new ChessRook("white", this.#squares[0][0]));
-        this.addPiece(new ChessRook("white", this.#squares[7][0]));
-        this.addPiece(new ChessRook("black", this.#squares[0][7]));
-        this.addPiece(new ChessRook("black", this.#squares[7][7]));
 
-        this.addPiece(new ChessKnight("white", this.#squares[1][0]));
-        this.addPiece(new ChessKnight("white", this.#squares[6][0]));
-        this.addPiece(new ChessKnight("black", this.#squares[1][7]));
-        this.addPiece(new ChessKnight("black", this.#squares[6][7]));
+        const board = this.#game.board();
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+                const pieceData = board[y][x];
+                if (!pieceData) continue;
+                const piece = new ChessPiece(
+                    pieceData.type,
+                    pieceData.color === "w" ? "white" : "black",
+                    this.#squares[x][7 - y],
+                );
+                this.addPiece(piece);
+            }
+        }
 
-        this.addPiece(new ChessBishop("white", this.#squares[2][0]));
-        this.addPiece(new ChessBishop("white", this.#squares[5][0]));
-        this.addPiece(new ChessBishop("black", this.#squares[2][7]));
-        this.addPiece(new ChessBishop("black", this.#squares[5][7]));
-
-        this.addPiece(new ChessQueen("white", this.#squares[3][0]));
-        this.addPiece(new ChessQueen("black", this.#squares[3][7]));
-
-        this.addPiece(new ChessKing("white", this.#squares[4][0]));
-        this.addPiece(new ChessKing("black", this.#squares[4][7]));
-        
+        if (this.#lastMove) {
+            this.showLastMove(this.#lastMove);
+        }
     }
-    
+
     handleSquareClick(square) {
-        console.log(square.notation);
-        if (this.#selectedPiece) {
-            this.#selectedPiece.square.element.classList.remove("selected");
-            this.#selectedPiece.move(square);
-            // TODO: make sure this is a legal move
-            // TODO: handle special rules
-            this.#selectedPiece = null;
-        } else if (square.piece) {
-            this.#selectedPiece = square.piece;
-            square.element.classList.add("selected");
+        if (!this.#selectedSquare) {
+            if (!square.piece) return;
+            this.selectSquare(square);
+            return;
+        } else if (square === this.#selectedSquare) {
+            this.clearSelection();
+            return;
+        } else if (square.piece && square.piece.color === this.#selectedSquare.piece.color) {
+            this.selectSquare(square);
+            return;
         }
+
+        let move;
+        try {
+            move = this.#game.move({
+                from: this.#selectedSquare.notation,
+                to: square.notation,
+                promotion: "q",
+            });
+        } catch {
+            console.log("illegal move attempted");
+        }
+        this.clearSelection();
+        if (!move) return;
+        this.showLastMove(move);
+        this.renderPosition();
     }
 }
 
@@ -90,7 +162,7 @@ class ChessSquare {
     #x;
     #y;
     #piece = null;
-    
+
     constructor(x, y, element) {
         this.#x = x;
         this.#y = y;
@@ -118,19 +190,21 @@ class ChessSquare {
     }
 
     set piece(piece) {
-        // TODO: make sure this is legal
         this.#piece = piece;
     }
 }
 
 class ChessPiece {
+    #type;
     #color;
     #square;
     #element;
 
-    constructor(color, square) {
+    constructor(type, color, square) {
+        this.#type = type;
         this.#color = color;
         this.#square = square;
+
         this.#element = createElement(
             "img",
             {
@@ -138,8 +212,12 @@ class ChessPiece {
                 classList: "piece",
                 draggable: false,
             },
-            this.#square.element,
+            square.element,
         );
+    }
+
+    get type() {
+        return this.#type;
     }
 
     get color() {
@@ -154,60 +232,16 @@ class ChessPiece {
         return this.#element;
     }
 
-    capture() {
-        this.#element.remove();
-        this.#square.piece = null;
-        this.#square = null;
-    }
-
-    move(targetSquare) {
-        // TODO: handle castling or w/e
-        this.#square.piece = null;
-        if (targetSquare.piece) {
-            targetSquare.piece.capture();
-        }
-        targetSquare.element.appendChild(this.#element);
-        this.#square = targetSquare;
-        targetSquare.piece = this;
-    }
-
     getImagePath() {
-        throw new Error('Abstract function \"getImagePath\" must be implemented by subclass!');
-    }
-}
+        const names = {
+            p: "Pawn",
+            n: "Knight",
+            b: "Bishop",
+            r: "Rook",
+            q: "Queen",
+            k: "King",
+        };
 
-class ChessPawn extends ChessPiece {
-    getImagePath() {
-        return `../assets/${this.color}Pawn.svg`;
-    }
-}
-
-class ChessKnight extends ChessPiece {
-    getImagePath() {
-        return `../assets/${this.color}Knight.svg`;
-    }
-}
-
-class ChessBishop extends ChessPiece {
-    getImagePath() {
-        return `../assets/${this.color}Bishop.svg`;
-    }
-}
-
-class ChessRook extends ChessPiece {
-    getImagePath() {
-        return `../assets/${this.color}Rook.svg`;
-    }
-}
-
-class ChessQueen extends ChessPiece {
-    getImagePath() {
-        return `../assets/${this.color}Queen.svg`;
-    }
-}
-
-class ChessKing extends ChessPiece {
-    getImagePath() {
-        return `../assets/${this.color}King.svg`;
+        return `../assets/${this.color}${names[this.type]}.svg`;
     }
 }

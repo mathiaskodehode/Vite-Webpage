@@ -27,6 +27,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 
     font-size: 48px;
 }
@@ -53,4 +54,32 @@ body {
 .selected {
     outline: 8px solid red;
     z-index: 99;
+}
+
+.legalMove::after {
+    content: "";
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: grey;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.legalCapture::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 8px solid rgba(0,0,0,.35);
+    border-radius: 50%;
+}
+
+.lastMove {
+    box-shadow: inset 0 0 0 9999px rgba(255, 255, 0, 0.25);
+}
+
+.hint {
+    box-shadow: inset 0 0 0 9999px rgba(0, 255, 0, 0.25);
 }
