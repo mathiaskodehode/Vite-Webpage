@@ -7,15 +7,20 @@ export class ChessBoard {
     #legalMoves = [];
     #lastMove = null;
     #game = null;
-
+    
     constructor(game) {
         this.#game = game;
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                this.clearSelection();
+            }
+        });
     }
-
+    
     get squares() {
         return this.#squares;
     }
-
+    
     // TODO: add option for flipping the board (reverse)
 
     build() {
@@ -63,7 +68,6 @@ export class ChessBoard {
         }
     }
 
-    // TODO: call this when you press esc or something
     clearSelection() {
         if (this.#selectedSquare) {
             this.#selectedSquare.element.classList.remove("selected");
